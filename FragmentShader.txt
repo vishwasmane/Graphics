@@ -1,0 +1,9 @@
+#version 430
+
+layout(location = 0) out vec4 daColor;
+
+uniform vec4 u_Color;
+void main()
+{
+	daColor = u_Color;//vec4(0.0f, 0.0f, 0.5f, 1.0f);
+}
