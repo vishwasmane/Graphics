@@ -5,60 +5,9 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Shader.h"
 
 using namespace std;
-
-string ReadShaderCode(const char* fileName)
-{
-	ifstream meInput(fileName);
-	if (!meInput.good())
-	{
-		cout << "File failed to load..." << fileName;
-		exit(1);
-	}
-	return std::string(
-		std::istreambuf_iterator<char>(meInput),
-		std::istreambuf_iterator<char>());
-}
-
-static unsigned int CompileShader(unsigned int type, const string& shaderSource)
-{
-	GLCall(unsigned int id = glCreateShader(type));
-	const char * src = shaderSource.c_str();
-	GLCall(glShaderSource(id, 1, &src, nullptr));
-
-	GLCall(glCompileShader(id));
-
-	int result;
-	GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
-	if (result == GL_FALSE)
-	{
-		int length;
-		GLCall(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
-		char *message = (char*)alloca(length * sizeof(char));
-		cout << "Failed to compile shader " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << endl;
-		cout << message << endl;
-
-		return 0;
-	}
-
-	return id;
-}
-
-static int CreateShader(const string& vertexShaderSource, const string& fragmentShaderSource)
-{
-	unsigned int shaderProgram = glCreateProgram();
-	unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShaderSource);
-	unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
-
-	GLCall(glAttachShader(shaderProgram, vs));
-	GLCall(glAttachShader(shaderProgram, fs));
-	GLCall(glLinkProgram(shaderProgram));
-	GLCall(glValidateProgram(shaderProgram));
-
-	return shaderProgram;
-}
-
 
 int main(void)
 {
@@ -131,20 +80,17 @@ int main(void)
 	// Shader
 	const char* vertexShaderSourceFile = "shaders\\VertexShader.txt";
 	const char* fragmentShaderSourceFile = "shaders\\FragmentShader.txt";
-	string vertexShaderCodeString = ReadShaderCode(vertexShaderSourceFile);
-	string fragmentShaderCodeString = ReadShaderCode(fragmentShaderSourceFile);
-	int shaderProgramID = CreateShader(vertexShaderCodeString.c_str(), fragmentShaderCodeString.c_str());
-	GLCall(glUseProgram(shaderProgramID));
+	Shader shader(vertexShaderSourceFile, fragmentShaderSourceFile);
 
 	float r = 0.0f;
-	GLint uColorLocation = glGetUniformLocation(shaderProgramID, "u_Color");
+	GLint uColorLocation = shader.GetUniformLocation("u_Color");
 	GLCall(glUniform4f(uColorLocation, r, 0.0f, 0.0f, 1.0f));
 	bool increment = true;
 	float step = 0.001f;
 
 	//Disable everything
 	GLCall(glBindVertexArray(0));
-	GLCall(glUseProgram(0));
+	shader.UnBind();
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	glDisableVertexAttribArray(0);
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
@@ -180,7 +126,7 @@ int main(void)
 		}
 		
 		//This is kind of used for rendering multiple objects with differrent data and shaders.
-		GLCall(glUseProgram(shaderProgramID));
+		shader.Bind();
 		GLCall(glUniform4f(uColorLocation, r, 0.0f, 0.0f, 1.0f));
 
 		GLCall(glBindVertexArray(vao));
