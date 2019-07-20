@@ -4,7 +4,7 @@
 IndexBuffer::IndexBuffer(unsigned int * indices, unsigned int size)
 {
 
-	ASSERT(sizeof(unsigned int) != sizeof(GLuint));
+	ASSERT(sizeof(unsigned int) == sizeof(GLuint));
 
 	GLCall(glGenBuffers(1, &m_Renderer));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Renderer));

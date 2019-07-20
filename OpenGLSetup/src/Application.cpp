@@ -103,7 +103,7 @@ int main(void)
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId));
 	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * 6, positions, GL_STATIC_DRAW));
 
-	//VertexBuffer vb(positions, 3 * 2 * sizeof(GL_FLOAT));
+	VertexBuffer vb(positions, 3 * 2 * sizeof(GL_FLOAT));
 
 	GLCall(glEnableVertexAttribArray(0));
 	//Very important - tell OpenGL Layout of the buffer.
@@ -119,7 +119,7 @@ int main(void)
 	GLCall(glGenBuffers(1, &indexBufferId));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId));
 	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3, indices, GL_STATIC_DRAW));
-	//IndexBuffer ib(indices, 3);
+	IndexBuffer ib(indices, 3);
 
 	// Shader
 	const char* vertexShaderSourceFile = "shaders\\VertexShader.txt";
@@ -127,11 +127,7 @@ int main(void)
 	string vertexShaderCodeString = ReadShaderCode(vertexShaderSourceFile);
 	string fragmentShaderCodeString = ReadShaderCode(fragmentShaderSourceFile);
 	int shaderProgramID = CreateShader(vertexShaderCodeString.c_str(), fragmentShaderCodeString.c_str());
-
 	GLCall(glUseProgram(shaderProgramID));
-
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
 	float r = 0.0f;
 	//float increment = 0.05f;
@@ -140,14 +136,19 @@ int main(void)
 	GLCall(glUniform4f(uColorLocation, r, 0.0f, 0.0f, 1.0f));
 	bool increment = true;
 	float step = 0.001f;
+
+	//Disable everything
+	GLCall(glUseProgram(0));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		/* Render here */
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-		//GLCall(glUseProgram(shaderProgramID));
-
+		GLCall(glUseProgram(shaderProgramID));
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId));
 		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId));
 
