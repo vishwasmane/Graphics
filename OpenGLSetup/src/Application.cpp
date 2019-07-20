@@ -105,7 +105,6 @@ int main(void)
 
 	VertexBuffer vb(positions, 3 * 2 * sizeof(GL_FLOAT));
 
-	GLCall(glEnableVertexAttribArray(0));
 	//Very important - tell OpenGL Layout of the buffer.
 	// Here specifying about the position attribute of vertex. If we have multiple attributes we will have to write multiple glVertexAttribPointer()
 	// for each attribute specificatio.
@@ -113,6 +112,7 @@ int main(void)
 	//type - datatype, isNormalized - 0-1, stride - size of bytes to reach to next memory location of attribute-"position here".
 	//pointer - start position offset of the attributes in bytes. E.g suppose we have one more attribute for each vertex.(x, y, textureCoord). So prt will be 8 = <x,y = 2*floats>.
 	// But parameter is const void* so need conversion like -> (const void*)8.
+	GLCall(glEnableVertexAttribArray(0));
 	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
 
 	unsigned int indexBufferId;
@@ -140,6 +140,7 @@ int main(void)
 	//Disable everything
 	GLCall(glUseProgram(0));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	glDisableVertexAttribArray(0);
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
 	/* Loop until the user closes the window */
@@ -148,23 +149,11 @@ int main(void)
 		/* Render here */
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-		GLCall(glUseProgram(shaderProgramID));
-		GLCall(glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId));
-		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId));
-
-		// Legacy OpenGL
-		/*glColor3f(1.0, 0.0, 0.0);
-		glBegin(GL_TRIANGLES);
-		glVertex2d(0.0, 0.0);
-		glVertex2d(1.0, 0.0);
-		glVertex2d(0.0, 1.0);
-		glEnd();*/
-		//printf("r value = %f \n", r);
-		
+		// Compute color to use for drawing - color animation
 		if (increment  && r < 1.0f)
 		{
 			r += step;
-			if(r >= 1.0f)
+			if (r >= 1.0f)
 				increment = false;
 		}
 		else if (!increment && r >= 0.0f)
@@ -173,7 +162,7 @@ int main(void)
 			if (r <= 0)
 				increment = false;
 		}
-		else if(r < 0.0f)
+		else if (r < 0.0f)
 		{
 			increment = true;
 			r += step;
@@ -184,8 +173,16 @@ int main(void)
 			r -= step;
 		}
 		
-		
+		GLCall(glUseProgram(shaderProgramID));
 		GLCall(glUniform4f(uColorLocation, r, 0.0f, 0.0f, 1.0f));
+
+		GLCall(glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId));
+		GLCall(glEnableVertexAttribArray(0));
+		GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
+
+		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId));
+		
+		
 		
 		// Modern OpenGL
 		//glDrawArrays(GL_TRIANGLES, 0, 6); // No of indices that is no of vertices for drawing triangles.
