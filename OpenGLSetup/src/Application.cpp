@@ -73,7 +73,7 @@ int main(void)
 	//Create window in s[ecfied OpenGL context/version
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);//GLFW_OPENGL_COMPATIBLE_PROFILE as it default creates/initiates VertexArrayObjects. 
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);//GLFW_OPENGL_COMPATIBLE_PROFILE as it default creates/initiates VertexArrayObjects. 
 
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(640, 480, "OpenGL Window", NULL, NULL);
@@ -109,11 +109,6 @@ int main(void)
 	GLCall(glGenVertexArrays(1, &vao));
 	GLCall(glBindVertexArray(vao));
 
-	unsigned int vertexBufferId;
-	GLCall(glGenBuffers(1, &vertexBufferId));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT) * 6, positions, GL_STATIC_DRAW));
-
 	VertexBuffer vb(positions, 3 * 2 * sizeof(GL_FLOAT));
 
 	//Very important - tell OpenGL Layout of the buffer.
@@ -126,10 +121,11 @@ int main(void)
 	GLCall(glEnableVertexAttribArray(0));
 	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0)); //Gives error at this line as for core profile it doesn't have default 
 
-	unsigned int indexBufferId;
-	GLCall(glGenBuffers(1, &indexBufferId));
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId));
-	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * 3, indices, GL_STATIC_DRAW));
+	//Note : IF we want to add other vertexbuffer/object/mest to the current vao, we can do like below
+	//Obviously we need other vertex buffer as well, which can have 3d or differrent layout which wde specify below
+	//GLCall(glEnableVertexAttribArray(1));
+	//GLCall(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0)); //Gives error at this line as for core profile it doesn't have default 
+
 	IndexBuffer ib(indices, 3);
 
 	// Shader
@@ -141,8 +137,6 @@ int main(void)
 	GLCall(glUseProgram(shaderProgramID));
 
 	float r = 0.0f;
-	//float increment = 0.05f;
-
 	GLint uColorLocation = glGetUniformLocation(shaderProgramID, "u_Color");
 	GLCall(glUniform4f(uColorLocation, r, 0.0f, 0.0f, 1.0f));
 	bool increment = true;
@@ -190,8 +184,7 @@ int main(void)
 		GLCall(glUniform4f(uColorLocation, r, 0.0f, 0.0f, 1.0f));
 
 		GLCall(glBindVertexArray(vao));
-
-		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId));
+		ib.Bind();
 		
 		// Modern OpenGL
 		//glDrawArrays(GL_TRIANGLES, 0, 6); // No of indices that is no of vertices for drawing triangles.
