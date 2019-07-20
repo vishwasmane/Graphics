@@ -64,9 +64,16 @@ int main(void)
 {
 	GLFWwindow* window;
 
+	glewExperimental = GL_TRUE;
+ 
 	/* Initialize the library */
 	if (!glfwInit())
 		return -1;
+
+	//Create window in s[ecfied OpenGL context/version
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);//GLFW_OPENGL_COMPATIBLE_PROFILE as it default creates/initiates VertexArrayObjects. 
 
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(640, 480, "OpenGL Window", NULL, NULL);
@@ -92,11 +99,15 @@ int main(void)
 	glfwMakeContextCurrent(window);
 
 	// For Modern OpenGL
-	GLCall(GLenum glewInitRes = glewInit());
+	GLenum glewInitRes = glewInit();
 	if (glewInitRes != GLEW_OK)
 		std::cout << "GLEW initialization failed.." << std::endl;
 
 	GLCall(std::cout << glGetString(GL_VERSION)<< std::endl);
+
+	unsigned int vao;
+	GLCall(glGenVertexArrays(1, &vao));
+	GLCall(glBindVertexArray(vao));
 
 	unsigned int vertexBufferId;
 	GLCall(glGenBuffers(1, &vertexBufferId));
@@ -113,7 +124,7 @@ int main(void)
 	//pointer - start position offset of the attributes in bytes. E.g suppose we have one more attribute for each vertex.(x, y, textureCoord). So prt will be 8 = <x,y = 2*floats>.
 	// But parameter is const void* so need conversion like -> (const void*)8.
 	GLCall(glEnableVertexAttribArray(0));
-	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
+	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0)); //Gives error at this line as for core profile it doesn't have default 
 
 	unsigned int indexBufferId;
 	GLCall(glGenBuffers(1, &indexBufferId));
@@ -138,6 +149,7 @@ int main(void)
 	float step = 0.001f;
 
 	//Disable everything
+	GLCall(glBindVertexArray(0));
 	GLCall(glUseProgram(0));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	glDisableVertexAttribArray(0);
@@ -173,16 +185,13 @@ int main(void)
 			r -= step;
 		}
 		
+		//This is kind of used for rendering multiple objects with differrent data and shaders.
 		GLCall(glUseProgram(shaderProgramID));
 		GLCall(glUniform4f(uColorLocation, r, 0.0f, 0.0f, 1.0f));
 
-		GLCall(glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId));
-		GLCall(glEnableVertexAttribArray(0));
-		GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
+		GLCall(glBindVertexArray(vao));
 
 		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId));
-		
-		
 		
 		// Modern OpenGL
 		//glDrawArrays(GL_TRIANGLES, 0, 6); // No of indices that is no of vertices for drawing triangles.
