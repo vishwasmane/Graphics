@@ -1,0 +1,11 @@
+
+*.obj
+*.tlog
+*.exe
+*.ilk
+*.log
+*.pdb
+*.idb
+*.opendb
+OpenGLSetup/.vs/OpenGLSetup/v14/.suo
+*.enc
